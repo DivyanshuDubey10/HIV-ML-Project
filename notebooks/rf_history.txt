@@ -1,0 +1,412 @@
+   1:
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sklearn
+   2:
+print("Pandas:", pd.__version__)
+print("NumPy:", np.__version__)
+print("Scikit-learn:", sklearn.__version__)
+   3: df = pd.read_csv("../data/AIDS_Classification.csv")
+   4: df.head()
+   5: df.shape
+   6: df.columns
+   7: df.info()
+   8: df.isnull().sum()
+   9: df["infected"].value_counts()
+  10: df["infected"].value_counts(normalize=True) * 100
+  11:
+sns.countplot(data=df, x="infected")
+plt.title("HIV Infection Class Distribution")
+plt.xlabel("Infected")
+plt.ylabel("Number of Patients")
+plt.show()
+  12:
+x = df.drop("infected", axis=1)
+y = df["infected"]
+  13:
+print("x shape:",x.shape)
+print("y shape:", y.shape)
+  14: from sklearn.model_selection import train_test_split
+  15:
+x_train, x_test, y_train, y_test = train_test_split(
+    x,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+  16:
+print("Training data:", x_train.shape)
+print("Testing data:", x_test.shape)
+  17: from sklearn.linear_model import LogisticRegression
+  18: model = LogisticRegression(max_iter=1000)
+  19: model.fit(x_train,y_train)
+  20: y_pred = model.predict(x_test)
+  21: from sklearn.metrics import accuracy_score
+  22:
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+  23: from sklearn.metrics import confusion_matrix
+  24:
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+  25: from sklearn.metrics import classification_report
+  26: print(classification_report(y_test, y_pred))
+  27: from sklearn.preprocessing import StandardScaler
+  28: scaler = StandardScaler()
+  29:
+X=df.drop("infected", axis =1)
+y=df["infected"]
+  30: from sklearn.model_selection import train_test_split
+  31:
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+  32:
+print(X_train.shape)
+print(X_test.shape)
+print(y_train.shape)
+print(y_test.shape)
+  33:
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+  34: X_train_scaled = scaler.fit_transform(X_train)
+  35: X_test_scaled = scaler.transform(X_test)
+  36:
+print("Training scaled:", X_train_scaled.shape)
+print("Testing scaled:", X_test_scaled.shape)
+  37: scaled_model= LogisticRegression(max_iter=1000)
+  38: scaled_model.fit(X_train_scaled, y_train)
+  39: y_pred_scaled = scaled_model.predict(X_test_scaled)
+  40:
+scaled_accuracy = accuracy_score(y_test, y_pred_scaled)
+print("Scaled Logistic Regression Accuracy:", scaled_accuracy)
+  41: print(classification_report(y_test, y_pred_scaled))
+  42: from sklearn.ensemble import RandomForestClassifier
+  43:
+rf_model = RandomForestClassifier(
+    n_estimators=100,
+    random_state=42
+)
+  44: rf_model.fit(X_train,y_train)
+  45: rf_pred = rf_model.predict(X_test)
+  46: rf_accuracy = accuracy_score(y_test, rf_pred)
+  47: print("Random Forest Accuracy:", rf_accuracy)
+  48: print(classification_report(y_test, rf_pred))
+  49: rf_cm = confusion_matrix(y_test, rf_pred)
+  50: print(rf_cm)
+  51: rf_train_pred = rf_model.predict(X_train)
+  52: rf_train_accuracy = accuracy_score(y_train, rf_train_pred)
+  53: print("Testing Accuracy:", rf_train_accuracy)
+  54: print("Testing Accuracy:", rf_accuracy)
+  55:
+rf_model_depth = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    random_state=42
+)
+  56: rf_model_depth.fit(X_train, y_train)
+  57: rf_depth_train_pred = rf_model_depth.predict(X_train)
+  58: rf_depth_test_pred = rf_model_depth.predict(X_test)
+  59:
+rf_depth_train_accuracy = accuracy_score(
+    y_train,
+    rf_depth_train_pred
+)
+
+rf_depth_test_accuracy = accuracy_score(
+    y_test,
+    rf_depth_test_pred
+)
+
+print("Training Accuracy:", rf_depth_train_accuracy)
+print("Testing Accuracy:", rf_depth_test_accuracy)
+  60: from sklearn.model_selection import cross_val_score
+  61:
+cv_scores = cross_val_score(
+    rf_model,
+    X_train,
+    y_train,
+    cv=5,
+    scoring="accuracy"
+)
+  62: print("Cross-validation scores:", cv_scores)
+  63: print("Mean CV accuracy:", cv_scores.mean())
+  64:
+depths = [5,10,15,20]
+for depth in depths:
+    model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=depth,
+        random_state=42
+    )
+    scores = cross_val_score(
+        model,
+        X_train,
+        y_train,
+        cv = 5,
+        scoring="accuracy"
+    )
+    
+    print("Depth:", depth)
+    print("Mean CV accuracy:", scores.mean())
+    print()
+  65:
+rf_best = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=20,
+    random_state=42
+)
+  66: rf_best.fit(X_train, y_train)
+  67: rf_best_pred = rf_best.predict(X_test)
+  68:
+rf_best_accuracy = accuracy_score(y_test, rf_best_pred)
+print("Final Random Forest Accuracy:", rf_best_accuracy)
+  69: print(classification_report(y_test, rf_best_pred))
+  70:
+feature_importance = pd.DataFrame({
+    "Feature": X.columns,
+    "Importance": rf_best.feature_importances_
+})
+
+feature_importance = feature_importance.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print(feature_importance)
+  71: print(df.columns.tolist())
+  72: print(df.dtypes)
+  73: print(df.describe())
+  74: print(df["infected"].value_counts())
+  75: df["infected"].value_counts(normalize=True) * 100
+  76: from sklearn.model_selection import cross_val_score
+  77:
+scores = cross_val_score(
+    model,
+    X_train,
+    y_train,
+    cv = 5
+)
+
+print(scores)
+print("Average:", scores.mean())
+  78: %whos
+  79: %history -n -g "LogisticRegression"
+  80:
+%history -n -g "LogisticRegression"
+%history -n -g "RandomForestClassifier"
+  81: %history -n -g "RandomForestClassifier"
+  82:
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sklearn
+  83:
+print("Pandas:", pd.__version__)
+print("NumPy:", np.__version__)
+print("Scikit-learn:", sklearn.__version__)
+  84: df = pd.read_csv("../data/AIDS_Classification.csv")
+  85: df.head()
+  86: df.shape
+  87: df.columns
+  88: df.info()
+  89: df.isnull().sum()
+  90: df["infected"].value_counts()
+  91: df["infected"].value_counts(normalize=True) * 100
+  92:
+sns.countplot(data=df, x="infected")
+plt.title("HIV Infection Class Distribution")
+plt.xlabel("Infected")
+plt.ylabel("Number of Patients")
+plt.show()
+  93:
+x = df.drop("infected", axis=1)
+y = df["infected"]
+  94:
+print("x shape:",x.shape)
+print("y shape:", y.shape)
+  95: from sklearn.model_selection import train_test_split
+  96:
+x_train, x_test, y_train, y_test = train_test_split(
+    x,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+  97:
+print("Training data:", x_train.shape)
+print("Testing data:", x_test.shape)
+  98: from sklearn.linear_model import LogisticRegression
+  99: model = LogisticRegression(max_iter=1000)
+ 100: model.fit(x_train,y_train)
+ 101: y_pred = model.predict(x_test)
+ 102: from sklearn.metrics import accuracy_score
+ 103:
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+ 104: from sklearn.metrics import confusion_matrix
+ 105:
+cm = confusion_matrix(y_test,y_pred)
+print(cm)
+ 106: from sklearn.metrics import classification_report
+ 107: print(classification_report(y_test, y_pred))
+ 108: from sklearn.preprocessing import StandardScaler
+ 109: scaler = StandardScaler()
+ 110:
+X=df.drop("infected", axis =1)
+y=df["infected"]
+ 111: from sklearn.model_selection import train_test_split
+ 112:
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
+ 113:
+print(X_train.shape)
+print(X_test.shape)
+print(y_train.shape)
+print(y_test.shape)
+ 114:
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+ 115: X_train_scaled = scaler.fit_transform(X_train)
+ 116: X_test_scaled = scaler.transform(X_test)
+ 117:
+print("Training scaled:", X_train_scaled.shape)
+print("Testing scaled:", X_test_scaled.shape)
+ 118: scaled_model= LogisticRegression(max_iter=1000)
+ 119: scaled_model.fit(X_train_scaled, y_train)
+ 120: y_pred_scaled = scaled_model.predict(X_test_scaled)
+ 121:
+scaled_accuracy = accuracy_score(y_test, y_pred_scaled)
+print("Scaled Logistic Regression Accuracy:", scaled_accuracy)
+ 122: print(classification_report(y_test, y_pred_scaled))
+ 123: from sklearn.ensemble import RandomForestClassifier
+ 124:
+rf_model = RandomForestClassifier(
+    n_estimators=100,
+    random_state=42
+)
+ 125: rf_model.fit(X_train,y_train)
+ 126: rf_pred = rf_model.predict(X_test)
+ 127: rf_accuracy = accuracy_score(y_test, rf_pred)
+ 128: print("Random Forest Accuracy:", rf_accuracy)
+ 129: print(classification_report(y_test, rf_pred))
+ 130: rf_cm = confusion_matrix(y_test, rf_pred)
+ 131: print(rf_cm)
+ 132: rf_train_pred = rf_model.predict(X_train)
+ 133: rf_train_accuracy = accuracy_score(y_train, rf_train_pred)
+ 134: print("Testing Accuracy:", rf_train_accuracy)
+ 135: print("Testing Accuracy:", rf_accuracy)
+ 136:
+rf_model_depth = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=5,
+    random_state=42
+)
+ 137: rf_model_depth.fit(X_train, y_train)
+ 138: rf_depth_train_pred = rf_model_depth.predict(X_train)
+ 139: rf_depth_test_pred = rf_model_depth.predict(X_test)
+ 140:
+rf_depth_train_accuracy = accuracy_score(
+    y_train,
+    rf_depth_train_pred
+)
+
+rf_depth_test_accuracy = accuracy_score(
+    y_test,
+    rf_depth_test_pred
+)
+
+print("Training Accuracy:", rf_depth_train_accuracy)
+print("Testing Accuracy:", rf_depth_test_accuracy)
+ 141: from sklearn.model_selection import cross_val_score
+ 142:
+cv_scores = cross_val_score(
+    rf_model,
+    X_train,
+    y_train,
+    cv=5,
+    scoring="accuracy"
+)
+ 143: print("Cross-validation scores:", cv_scores)
+ 144: print("Mean CV accuracy:", cv_scores.mean())
+ 145:
+depths = [5,10,15,20]
+for depth in depths:
+    model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=depth,
+        random_state=42
+    )
+    scores = cross_val_score(
+        model,
+        X_train,
+        y_train,
+        cv = 5,
+        scoring="accuracy"
+    )
+    
+    print("Depth:", depth)
+    print("Mean CV accuracy:", scores.mean())
+    print()
+ 146:
+rf_best = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=20,
+    random_state=42
+)
+ 147: rf_best.fit(X_train, y_train)
+ 148: rf_best_pred = rf_best.predict(X_test)
+ 149:
+rf_best_accuracy = accuracy_score(y_test, rf_best_pred)
+print("Final Random Forest Accuracy:", rf_best_accuracy)
+ 150: print(classification_report(y_test, rf_best_pred))
+ 151:
+feature_importance = pd.DataFrame({
+    "Feature": X.columns,
+    "Importance": rf_best.feature_importances_
+})
+
+feature_importance = feature_importance.sort_values(
+    by="Importance",
+    ascending=False
+)
+
+print(feature_importance)
+ 152: print(df.columns.tolist())
+ 153: print(df.dtypes)
+ 154: print(df.describe())
+ 155: print(df["infected"].value_counts())
+ 156: df["infected"].value_counts(normalize=True) * 100
+ 157: from sklearn.model_selection import cross_val_score
+ 158:
+scores = cross_val_score(
+    model,
+    X_train,
+    y_train,
+    cv = 5
+)
+
+print(scores)
+print("Average:", scores.mean())
+ 159: %whos
+ 160:
+%history -n -g "LogisticRegression"
+%history -n -g "RandomForestClassifier"
+ 161: %history -n -g "RandomForestClassifier"
+ 162: %history -n -f rf_history.txt
